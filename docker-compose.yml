@@ -1,0 +1,35 @@
+#version: "3.8"  Specify the version of Docker Compose
+
+services:
+  mysqldb:  # MySQL service
+    image: mysql:5.7  # Use the MySQL 5.7 image
+    restart: unless-stopped  # Restart policy
+    environment:
+      MYSQL_ROOT_PASSWORD: root   # Replace with your actual root password
+      MYSQL_DATABASE: db  # Name of the database to create
+    ports:
+      - "3306:3306"  # Expose port 3306 on the host
+    volumes:
+      - db:/var/lib/mysql  # Use named volume for MySQL data persistence
+
+  app-school:  # Your Spring Boot application service
+    depends_on:
+      - mysqldb  # Ensure MySQL starts before the app
+    image: ahmedsallemi34/school:latest  # Replace with your image name
+    restart: on-failure  # Restart policy
+    ports:
+      - "8089:8089"  # Expose port 8089 on the host
+    environment:
+      SPRING_APPLICATION_JSON: '{
+        "spring.datasource.url": "jdbc:mysql://mysqldb:3306/db",
+        "spring.datasource.username": "root",
+        "spring.datasource.password": "root",  
+        "spring.jpa.properties.hibernate.dialect": "org.hibernate.dialect.MySQL5Dialect",
+        "spring.jpa.hibernate.ddl-auto": "update"
+      }'
+    stdin_open: true  # Keep stdin open
+    tty: true  # Allocate a pseudo-TTY
+
+# Volumes section for defining named volumes
+volumes:
+  db:  # Define a named volume for MySQL data persistence
